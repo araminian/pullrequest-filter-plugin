@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: br-pr
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - matrix:
+        generators:
+          - pullRequest:
+              github:
+                # The GitHub organization or user.
+                owner: araminian
+                # The Github repository
+                repo: BRApplication
+                # Labels is used to filter the PRs that you want to target. (optional)
+                # labels:
+                #   - advertisers
+              requeueAfterSeconds: 180
+          - plugin:
+              configMapRef:
+                name: applicationset-pr-filter-plugin
+              input:
+                parameters:
+                  labels: "{{.labels}}"
+                  excludeLabel: "no-preview"
+                  path: "manifests/app/"
+                  blackHole: "manifests/blackhole/"
+                  number: "{{.number}}"
+  template:
+    metadata:
+      name: "br-{{.branch}}-{{.number}}"
+    spec:
+      source:
+        repoURL: "https://github.com/araminian/BRApplication.git"
+        targetRevision: HEAD
+        path: "{{.generatedPath}}"
+        directory:
+          include: '{*.yml,*.yaml}'
+      project: "default"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "default"
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: applicationset-pr-filter-plugin
+  namespace: argocd
+data:
+  token: '$applicationset-pr-filter-plugin:token'
+  baseUrl: "http://api.applicationset-pr-filter-plugin.svc.cluster.local"
